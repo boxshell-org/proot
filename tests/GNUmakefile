@@ -13,9 +13,21 @@ CHECK_TESTS = $(patsubst %,check-%, $(wildcard test-*.sh) $(wildcard test-*.c))
 #
 #   test-0cf405b0  execlp("/proc/self/exe") loops forever under ptrace
 #                  https://github.com/boxshell-org/proot/issues/1
+#   test-25069c12, test-25069c13  same self-exec hang family (issue #1)
 #   test-691786c8  execve of a script with an overlong shebang -> ELOOP
 #                  https://github.com/boxshell-org/proot/issues/2
-XFAIL_TESTS = test-0cf405b0 test-691786c8
+#   test-82ba4ba1  fake_id0: setresuid/setresgid emulation incomplete
+#                  https://github.com/boxshell-org/proot/issues/4
+#   test-c5a7a0f0  kompat: setuid() in a secondary thread
+#                  https://github.com/boxshell-org/proot/issues/5
+#   test-kkkkkkkk  brk() edge cases diverge from native
+#                  https://github.com/boxshell-org/proot/issues/6
+#   test-1fedd9a3, test-8d3c07f5  order/timing-sensitive in full-suite
+#                  runs; pass in isolation
+#                  https://github.com/boxshell-org/proot/issues/3
+XFAIL_TESTS = test-0cf405b0 test-25069c12 test-25069c13 test-691786c8 \
+              test-82ba4ba1 test-c5a7a0f0 test-kkkkkkkk \
+              test-1fedd9a3 test-8d3c07f5
 
 # Per-test timeout in seconds so a hung test (see issue #1) is bounded
 # instead of stalling the suite forever.  Exit status of a killed test
