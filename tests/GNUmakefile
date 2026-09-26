@@ -6,6 +6,22 @@ PROOT_RAW = $(PROOT)
 
 CHECK_TESTS = $(patsubst %,check-%, $(wildcard test-*.sh) $(wildcard test-*.c))
 
+# Tests with known failures.  They still run, but a failure is reported
+# as "xfail" instead of failing the suite; an unexpected pass is
+# reported as "xpass" (informational only -- several tests are
+# host-dependent).  Remove entries when the underlying bug is fixed.
+#
+#   test-0cf405b0  execlp("/proc/self/exe") loops forever under ptrace
+#                  https://github.com/boxshell-org/proot/issues/1
+#   test-691786c8  execve of a script with an overlong shebang -> ELOOP
+#                  https://github.com/boxshell-org/proot/issues/2
+XFAIL_TESTS = test-0cf405b0 test-691786c8
+
+# Per-test timeout in seconds so a hung test (see issue #1) is bounded
+# instead of stalling the suite forever.  Exit status of a killed test
+# is 124, reported below.
+TEST_TIMEOUT ?= 120
+
 .PHONY: check clean_failure check_failure setup check-%
 
 check: | clean_failure check_failure
@@ -21,7 +37,7 @@ check_failure: $(CHECK_TESTS)
 	@bash -c '! test -e failure'
 
 check-%.sh: %.sh setup
-	$(Q)env ROOT_RAW="$(PROOT_RAW)" PROOT="$(PROOT)" ROOTFS=$(ROOTFS) sh -ex $< $(silently); $(call check,$*)
+	$(Q)env ROOT_RAW="$(PROOT_RAW)" PROOT="$(PROOT)" ROOTFS=$(ROOTFS) timeout -k 5 $(TEST_TIMEOUT) sh -ex $< $(silently); $(call check,$*)
 
 check-%.c: $(ROOTFS)/bin/% setup
 	$(call check_c,$*,$(PROOT) -b /proc -r $(ROOTFS) /bin/$*)
@@ -87,16 +103,17 @@ check-test-fa205b56.c: test-fa205b56
 	$(call check_c,$<,$(PROOT) ./$<)
 
 check_c = $(Q)if [ -e $< ]; then			\
-		$(2) $(silently); $(call check,$(1))	\
+		timeout -k 5 $(TEST_TIMEOUT) $(2) $(silently); $(call check,$(1))	\
 	else						\
 		echo "  CHECK	$(1) skipped";		\
 	fi
 
+# $(1) is the test name.  Members of XFAIL_TESTS fail softly.
 check = case "$$?" in					\
-		0)   echo "  CHECK	$(1) ok";;	\
+		0)   echo "  CHECK	$(1) $(if $(filter $(1),$(XFAIL_TESTS)),xpass,ok)";; \
+		124) $(if $(filter $(1),$(XFAIL_TESTS)),echo "  CHECK	$(1) xfail (timeout)",echo "  CHECK	$(1) FAILED (timeout)"; touch failure);; \
 		125) echo "  CHECK	$(1) skipped";;	\
-		*)   echo "  CHECK	$(1) FAILED";	\
-		     touch failure ;;			\
+		*)   $(if $(filter $(1),$(XFAIL_TESTS)),echo "  CHECK	$(1) xfail",echo "  CHECK	$(1) FAILED"; touch failure);; \
 	esac
 
 ######################################################################

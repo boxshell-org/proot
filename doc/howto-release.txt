@@ -13,8 +13,10 @@ Checks
   (`make -C src`).  A native Linux build is a useful smoke test but is
   not the shipping target.
 
-+ `make -C tests check` — see tests/GNUmakefile.  Failures are recorded
-  in ./failure.
++ `make -C tests check` — see tests/GNUmakefile.  Tests are bounded by
+  TEST_TIMEOUT (default 120s); known failures live in XFAIL_TESTS and
+  report as xfail.  A red suite means a real regression — only add a
+  test to XFAIL_TESTS with a linked GitHub issue.
 
 + `make -C doc check` — the generated manual and man page must be in
   sync with src/cli/proot.h.  If you changed option text or the

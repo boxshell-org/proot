@@ -40,6 +40,11 @@ Requirements: a C compiler, GNU make, and `libtalloc` development files
 
     make -C tests check
 
+Each test is bounded by `TEST_TIMEOUT` (default 120s).  Tests with
+known failures are listed in `XFAIL_TESTS` in `tests/GNUmakefile` and
+report `xfail`/`xpass` instead of failing the suite; each entry links
+to a tracking issue.
+
 ## Usage
 
     proot -S ~/rootfs            # shell into a guest rootfs as fake root

@@ -33,14 +33,14 @@ jobs:
         run: ./src/proot true && ./src/proot -r / echo smoke-ok
 
   tests:
-    name: Test suite (best-effort)
+    name: Test suite
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # The suite predates this fork's Android focus and has known
-    # failures on stock desktop kernels, so it reports status without
-    # blocking the workflow.  Keep it visible: new regressions still
-    # show up as diffs in the failure list.
-    continue-on-error: true
+    # Known failures are marked expected-fail in tests/GNUmakefile
+    # (XFAIL_TESTS), so a red suite here means a real regression or a
+    # new host-specific failure -- track those as GitHub issues and
+    # extend the list only with a linked issue.  Per-test timeout is
+    # TEST_TIMEOUT (default 120s).
     steps:
       - uses: actions/checkout@v4
 
