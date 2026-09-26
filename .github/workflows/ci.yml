@@ -24,7 +24,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            libtalloc-dev gcc-multilib gdb strace realpath
+            libtalloc-dev gcc-multilib gdb strace
 
       - name: Build proot and loaders
         run: make -C src
@@ -48,7 +48,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            libtalloc-dev gcc-multilib gdb strace realpath
+            libtalloc-dev gcc-multilib gdb strace
 
       - name: Build proot
         run: make -C src
