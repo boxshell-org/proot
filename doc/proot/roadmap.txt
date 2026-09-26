@@ -2,6 +2,12 @@
  Roadmap
 =========
 
+NOTE: This is the upstream PRoot roadmap, unchanged since the fork was
+created (~2014-2016 era).  It is kept for historical interest only —
+issue numbers refer to the archived proot-me tracker, and none of it
+describes plans for this repository.  For current work in the Termux
+fork, see <https://github.com/termux/proot/issues>.
+
 PRoot v5.2: a transparent loader
 ================================
 

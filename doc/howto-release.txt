@@ -1,45 +1,44 @@
-How to make a release of PRoot?
-===============================
+Releasing PRoot (Termux fork)
+=============================
 
-This document summarizes checks that must be performed before
-releasing PRoot or CARE.
+This fork does not cut versioned releases.  Packages are built straight
+from git by the termux-packages repository
+(packages/proot/build.sh), so "releasing" means landing changes on the
+default branch.  The checklist before merging anything user-visible:
 
 Checks
 ------
 
-+ Sanity checks:
-  * on ARM and *all* OBS distros (x86 and x86_64): `make -C test`
-  * on x86_64, with *and* without seccomp:
-    - `make -C tests` on *all* OBS distros
-    - `make -C tests memcheck`
-    - `CFLAGS=-fsanitize=address LDFLAGS=-lasan`
-    - `make -C tests V=1 2>&1 | grep talloc`
++ Build on all four Android targets: aarch64, arm, i686, x86_64
+  (`make -C src`).  A native Linux build is a useful smoke test but is
+  not the shipping target.
 
-+ Fonctional checks: no regressions must appear with respect to
-  tests/validation.mk and to the configurations tested in the previous
-  release (`git show tags/...`).
++ `make -C tests check` — see tests/GNUmakefile.  Failures are recorded
+  in ./failure.
 
-+ Performance checks: the following command must not suffer from
-  unexpected performance regression::
++ `make -C doc check` — the generated manual and man page must be in
+  sync with src/cli/proot.h.  If you changed option text or the
+  recommended binding lists, run `make -C doc` and commit the
+  regenerated MANUAL.md and proot.1 together with the code change.
 
-    time proot -R / perl -e 'system("/usr/bin/true") for (1..10000)'
++ Exercise the change under a real guest rootfs (proot-distro works
+  well) on a device, not only in the CI container.
 
-  where "/usr/bin/true" is a symlink to "/bin/true".
+Documentation
+-------------
 
-+ Static analysis: Coverity Scan and Clang Scan Build must not report
-  new issues.
+* Option names, descriptions, and the -R/-S binding lists live in
+  src/cli/proot.h — that file is the single source of truth for the
+  command line, and also produces `proot --help`.
 
+* Prose (description, examples, caveats) lives in doc/proot.md.
 
-Documentation Update
---------------------
+* After editing either, run `make -C doc` and commit the regenerated
+  outputs.
 
-0. update "doc/changelog.txt"
+* If the change is user-visible, add a line to the "Termux fork"
+  section of doc/proot/changelog.txt.
 
-1. update the release number in "doc/proot/manual.txt"
-
-2. regenerate the documentation: `make -C doc`
-
-3. regenerate the command-line interface: `cp doc/*.h
-   src/cli/; $EDITOR src/cli/{proot,care}.h`
-
-4. upload the generated RPM .spec file to OBS
+Historical note: the original upstream release process (OBS packaging,
+Coverity scans, regenerating this CLI header from the manual via
+docutils/xsltproc) was retired — see git history for the old workflow.

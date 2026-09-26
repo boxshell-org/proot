@@ -1,29 +1,27 @@
-OUTPUTS = proot/man.1 proot.h proot/rpm-spec proot/index.html care.h care/index.html
-all: $(OUTPUTS)
+# PRoot documentation build.
+#
+# Single source of truth: src/cli/proot.h defines the command line
+# (options, descriptions, recommended bindings); doc/proot.md holds the
+# maintained prose.  generate.py merges them into MANUAL.md (Markdown)
+# and proot.1 (troff).  `make check` fails if the checked-in copies are
+# stale, so docs cannot drift from `proot --help`.
 
-%/man.1: %/manual.txt
-	rst2man $< $@
+PYTHON    ?= python3
+GENERATED := MANUAL.md proot.1
+INPUTS    := proot.md generate.py ../src/cli/proot.h
 
-%.xml: %.txt
-	rst2xml --no-doctype $< $@
+all: $(GENERATED)
 
-%.html: %.txt
-	rst2html $< $@
+$(GENERATED): $(INPUTS)
+	$(PYTHON) generate.py
 
-# Workaround to avoid unescaped C character.
-%/manual-quoted.txt: %/manual.txt
-	sed 's/"/\\\\"/g' $^ > $@
+check: $(INPUTS)
+	@$(PYTHON) generate.py --check
 
-%.h: %/stylesheets/cli.xsl %/manual-quoted.xml
-	xsltproc --output $@ $^
-
-%/rpm-spec:  %/stylesheets/rpm-spec.xsl %/manual.xml # %/changelog.txt
-	xsltproc --output $@ $^
-	echo "* $(shell date +'%a %b %d %Y') Cédric VINCENT <cedric.vincent@st.com>" >> $@
-	cat $*/changelog.txt >> $@
-
-%/index.html: stylesheets/website.xsl %/stylesheets/website.xsl %/manual.xml
-	xsltproc --output $@ $*/stylesheets/website.xsl $*/manual.xml
+install: all
+	install -Dm644 proot.1 $(DESTDIR)$(PREFIX)/share/man/man1/proot.1
 
 clean:
-	rm -f *.xml $(OUTPUTS) *-quoted.*
+	rm -f $(GENERATED)
+
+.PHONY: all check install clean

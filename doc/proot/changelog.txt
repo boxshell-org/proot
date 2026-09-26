@@ -1,3 +1,41 @@
+Termux fork
+===========
+
+This repository is the Termux fork of PRoot.  The original, per-release
+upstream changelog is kept below for reference; it ends at v5.1.0
+(December 2014), the last release cut by this document's workflow.
+Fork changes are not released as versioned tarballs — packages are
+built directly from git via termux-packages — so this section only
+summarizes milestones.  `git log` is the authoritative history.
+
+Highlights since the fork:
+
+* 2018: merged the GNURoot/UserLAnd extension set (fake_id0 rework,
+  link2symlink, hidden_files, port_switch, fix_symlink_size,
+  kill-on-exit); unbundled the loader; large refactor to share code
+  with upstream.
+* 2020: new SysV IPC extension (`--sysvipc`) emulating
+  shmget/semget/msgget/shmat per proot instance; statx()
+  implementation; readlinkat on deleted files.
+* 2021: link2symlink on AArch32; seccomp workarounds for
+  setresuid/setresgid; faccessat2; materializing deleted temp files
+  through linkat("/proc/self/fd").
+* 2022: SCM_CREDENTIALS on AArch32; /system/lib added to QEMU's
+  LD_LIBRARY_PATH.
+* 2023: `--ashmem-memfd` emulating memfd_create through ashmem on
+  Android; clone3; execveat(AT_FDCWD).
+* 2024: SIGSYS handler for epoll_wait.
+* 2025: TCSETS2/TCSETSF2 workarounds.
+* 2026: openat2 support; netlink emulation (RTM_GETLINK/RTM_GETADDR,
+  synthesized dump replies); emulated mount/pivot_root/umount for
+  CLONE_NEWNS children; mountinfo synthesis for runtime bindings;
+  seccomp-event handling reworked around sysexit stops and fork
+  tracking; requires kernel >= 3.5 for PTRACE_EVENT_SECCOMP.
+
+
+Upstream changelog (kept for historical reference)
+==================================================
+
 Release v5.1.0
 ==============
 

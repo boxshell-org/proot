@@ -78,7 +78,7 @@ static Cli proot_cli = {
 	.name     = "proot",
 	.subtitle = "chroot, mount --bind, and binfmt_misc without privilege/setup",
 	.synopsis = "proot [option] ... [command]",
-	.colophon = "Visit http://proot.me for help, bug reports, suggestions, patchs, ...\n\
+	.colophon = "Visit https://github.com/termux/proot for help, bug reports, suggestions, patches, ...\n\
 Copyright (C) 2015 STMicroelectronics, licensed under GPL v2 or later.",
 	.logo = "\
  _____ _____              ___\n\
@@ -261,7 +261,9 @@ Copyright (C) 2015 STMicroelectronics, licensed under GPL v2 or later.",
 		{ .name = NULL, .separator = '\0', .value = NULL } },
           .handler = handle_option_ashmem_memfd,
           .description = "Emulate memfd_create support through ashmem and simulate fstat.st_size for ashmem",
-          .detail = "",
+          .detail = "\tOlder Android kernels lack memfd_create(2).  This option\n\
+\temulates it through ashmem so that guest programs using memfds\n\
+\twork unchanged.",
 	},
 #endif /* defined(__ANDROID__) || defined(__BIONIC__) */
         { .class = "Extension options",
@@ -270,7 +272,11 @@ Copyright (C) 2015 STMicroelectronics, licensed under GPL v2 or later.",
                 { .name = NULL, .separator = '\0', .value = NULL } },
           .handler = handle_option_H,
           .description = "Hide files and directories starting with '.proot.' .",
-          .detail = "",
+          .detail = "\tHides helper files from directory listings (getdents) so\n\
+\tthat guest programs and wildcard expressions do not see or\n\
+\tdelete them.  This covers the permission meta files created by\n\
+\t-0/-i (prefix .proot-meta-file.) and the links created by -l\n\
+\t(prefix .proot.l2s.).",
         },
         { .class = "Extension options",
           .arguments = {
@@ -278,7 +284,11 @@ Copyright (C) 2015 STMicroelectronics, licensed under GPL v2 or later.",
                 { .name = NULL, .separator = '\0', .value = NULL } },
           .handler = handle_option_p,
           .description = "Modify bindings to protected ports to use a higher port number.",
-          .detail = "",
+          .detail = "\tPorts below 1024 cannot be bound on kernels with\n\
+\tparanoid networking (Android).  This option adds 1024 to the\n\
+\tport number of bind(2)/connect(2)-like calls on localhost\n\
+\tsockets, so a guest program binding port 80 actually binds\n\
+\tport 1080.",
         },
         { .class = "Extension options",
           .arguments = {
@@ -286,7 +296,9 @@ Copyright (C) 2015 STMicroelectronics, licensed under GPL v2 or later.",
                 { .name = NULL, .separator = '\0', .value = NULL } },
           .handler = handle_option_L,
           .description = "Correct the size returned from lstat for symbolic links.",
-          .detail = "",
+          .detail = "\tBionic's lstat(2) returns misleading sizes for symlinks.\n\
+\tCombined with -l, this makes emulated links report plausible\n\
+\tmetadata (size, link count, inode) to guest programs.",
         },
 	{ .class = "Alias options",
 	  .arguments = {
