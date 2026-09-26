@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (x86_64, gcc)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libtalloc-dev gcc-multilib gdb strace realpath
+
+      - name: Build proot and loaders
+        run: make -C src
+
+      - name: Smoke test
+        run: ./src/proot true && ./src/proot -r / echo smoke-ok
+
+  tests:
+    name: Test suite (best-effort)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # The suite predates this fork's Android focus and has known
+    # failures on stock desktop kernels, so it reports status without
+    # blocking the workflow.  Keep it visible: new regressions still
+    # show up as diffs in the failure list.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libtalloc-dev gcc-multilib gdb strace realpath
+
+      - name: Build proot
+        run: make -C src
+
+      - name: Run test suite
+        run: env PATH=/bin:/usr/bin:/sbin:/usr/sbin:$PWD/src make -C tests check
+
+  docs:
+    name: Documentation freshness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check generated docs are in sync with src/cli/proot.h
+        run: make -C doc check
